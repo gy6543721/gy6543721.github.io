@@ -1,15 +1,12 @@
 export default async function Home() {
-  const pinnedRepoNames = ['nextjs-portfolio', 'AI-App'];
-  const repos: Repo[] = await fetch('https://api.github.com/users/gy6543721/repos')
-    .then(res => res.json())
-    .then(data => data.filter((repo: Repo) => !repo.fork))
-    .then(data => data.sort((a: Repo, b: Repo) => {
-      const aPinned = pinnedRepoNames.includes(a.name);
-      const bPinned = pinnedRepoNames.includes(b.name);
-      if (aPinned && !bPinned) return -1;
-      if (!aPinned && bPinned) return 1;
-      return b.stargazers_count - a.stargazers_count;
-    }));
+  const repos: Repo[] = await fetch('https://api.github.com/users/gy6543721/repos').then(res => res.json())
+  .then(repos => {
+    const filtered = repos.filter((repo: Repo & { fork?: boolean }) => !repo.fork);
+    return filtered.sort((a: Repo, b: Repo) =>
+      b.stargazers_count - a.stargazers_count || 
+      b.forks_count - a.forks_count
+    );
+  });
 
   return (
     <main className="min-h-screen p-8 bg-gray-50">
@@ -42,11 +39,11 @@ export default async function Home() {
 }
 
 interface Repo {
-  id: number;
-  fork: boolean;
+  id: string;
   html_url: string;
   name: string;
   description: string;
   stargazers_count: number;
   language: string;
+  forks_count: number;
 }
