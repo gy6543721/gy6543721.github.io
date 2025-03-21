@@ -1,5 +1,7 @@
 export default async function Home() {
-  const repos: Repo[] = await fetch('https://api.github.com/users/gy6543721/repos').then(res => res.json());
+  const repos: Repo[] = await fetch('https://api.github.com/users/gy6543721/repos')
+    .then(res => res.json())
+    .then(data => data.filter((repo: Repo) => !repo.fork));
 
   return (
     <main className="min-h-screen p-8 bg-gray-50">
@@ -32,7 +34,8 @@ export default async function Home() {
 }
 
 interface Repo {
-  id: string;
+  id: number;
+  fork: boolean;
   html_url: string;
   name: string;
   description: string;
