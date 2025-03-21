@@ -44,6 +44,5 @@ export async function getStaticProps() {
     props: {
       repos: repos.filter(repo => !repo.fork)
     },
-    revalidate: 3600 // Hourly Update
   }
 }
