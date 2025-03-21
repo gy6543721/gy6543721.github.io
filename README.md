@@ -1,2 +1,2 @@
 # 亮的小天地
-GitHub Pages
+[GitHub Page](https://gy6543721.github.io/)
