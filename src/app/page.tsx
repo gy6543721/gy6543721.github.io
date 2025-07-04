@@ -11,7 +11,7 @@ export default async function Home() {
   return (
     <main className="min-h-screen p-8 bg-gray-50">
       <h1 className="text-4xl font-bold text-center mb-8 text-gray-800">Lin&apos;s GitHub</h1>
-      <p className="text-gray-600 text-center text-sm mb-4">Android｜iOS｜Web｜AI｜ 🇹🇼🇺🇸🇯🇵🇫🇷</p>
+      <p className="text-gray-600 text-center text-sm mb-4">Android｜iOS｜Web｜AI｜ 🇹🇼-🇺🇸-🇯🇵-🇫🇷</p>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {repos.map((repo: Repo) => (
