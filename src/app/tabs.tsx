@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Tabs({
   initialTab,
@@ -15,6 +15,9 @@ export default function Tabs({
   codingHeader: React.ReactNode;
 }) {
   const [active, setActive] = useState<"writing" | "coding">(initialTab);
+  useEffect(() => {
+    setActive(initialTab);
+  }, [initialTab]);
   return (
     <div className="max-w-6xl mx-auto">
       <div className="mb-6 text-center">
@@ -24,13 +27,27 @@ export default function Tabs({
         <div className="inline-flex rounded-lg bg-gray-200 p-1">
           <button
             className={`px-4 py-2 rounded-md ${active === "writing" ? "bg-white shadow text-gray-900" : "text-gray-600"}`}
-            onClick={() => setActive("writing")}
+            onClick={() => {
+              setActive("writing");
+              const url = new URL(window.location.href);
+              url.searchParams.set("tab", "writing");
+              url.searchParams.delete("work");
+              url.searchParams.delete("volume");
+              window.history.pushState(null, "", url);
+            }}
           >
             Writing
           </button>
           <button
             className={`px-4 py-2 rounded-md ${active === "coding" ? "bg-white shadow text-gray-900" : "text-gray-600"}`}
-            onClick={() => setActive("coding")}
+            onClick={() => {
+              setActive("coding");
+              const url = new URL(window.location.href);
+              url.searchParams.set("tab", "coding");
+              url.searchParams.delete("work");
+              url.searchParams.delete("volume");
+              window.history.pushState(null, "", url);
+            }}
           >
             Coding
           </button>

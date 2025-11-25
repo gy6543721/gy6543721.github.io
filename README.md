@@ -1,2 +1,2 @@
-# Official GitHub Page
-[Lin's GitHub](https://gy6543721.github.io/)
+# Official Personal Page
+[Lin's World](https://gy6543721.github.io/)
