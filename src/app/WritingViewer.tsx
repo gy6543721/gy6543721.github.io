@@ -5,18 +5,18 @@ export default function WritingViewer({
   works,
   volumesByWork,
   chaptersByWorkVolume,
-  contentByWorkVolumeChapter,
   initialWork,
   initialVolume,
   initialChapter,
+  initialContent,
 }: {
   works: string[];
   volumesByWork: Record<string, string[]>;
   chaptersByWorkVolume: Record<string, Record<string, string[]>>;
-  contentByWorkVolumeChapter: Record<string, Record<string, Record<string, string>>>;
   initialWork?: string;
   initialVolume?: string;
   initialChapter?: string;
+  initialContent?: string;
 }) {
   const defaultWork = initialWork ?? works[0];
   const defaultVolume = initialVolume ?? (defaultWork ? volumesByWork[defaultWork]?.[0] : undefined);
@@ -24,6 +24,26 @@ export default function WritingViewer({
   const [work, setWork] = useState<string | undefined>(defaultWork);
   const [volume, setVolume] = useState<string | undefined>(defaultVolume);
   const [chapter, setChapter] = useState<string | undefined>(defaultChapter);
+  const [content, setContent] = useState<string>(initialContent ?? "");
+
+  async function fetchChapter(w?: string, v?: string, c?: string) {
+    if (!w || !v || !c) {
+      setContent("");
+      return;
+    }
+    try {
+      const url = `/novels/${encodeURIComponent(w)}/${encodeURIComponent(v)}/${encodeURIComponent(c)}.md`;
+      const res = await fetch(url);
+      if (!res.ok) {
+        setContent("");
+        return;
+      }
+      const txt = await res.text();
+      setContent(txt);
+    } catch {
+      setContent("");
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -39,7 +59,9 @@ export default function WritingViewer({
                 const nextVolume = vols[0];
                 setVolume(nextVolume);
                 const chs = nextVolume ? chaptersByWorkVolume[w]?.[nextVolume] ?? [] : [];
-                setChapter(chs[0]);
+                const nextChapter = chs[0];
+                setChapter(nextChapter);
+                fetchChapter(w, nextVolume, nextChapter);
               }}
               className={`px-4 py-2 rounded-md ${work === w ? "bg-white shadow text-gray-900" : "text-gray-600"}`}
             >
@@ -58,7 +80,9 @@ export default function WritingViewer({
                 onClick={() => {
                   setVolume(v);
                   const chs = chaptersByWorkVolume[work]?.[v] ?? [];
-                  setChapter(chs[0]);
+                  const nextChapter = chs[0];
+                  setChapter(nextChapter);
+                  fetchChapter(work, v, nextChapter);
                 }}
                 className={`px-4 py-2 rounded-md ${volume === v ? "bg-white shadow text-gray-900" : "text-gray-600"}`}
               >
@@ -75,7 +99,10 @@ export default function WritingViewer({
             {(chaptersByWorkVolume[work]?.[volume] ?? []).map((c) => (
               <button
                 key={c}
-                onClick={() => setChapter(c)}
+                onClick={() => {
+                  setChapter(c);
+                  fetchChapter(work, volume, c);
+                }}
                 className={`px-4 py-2 rounded-md ${chapter === c ? "bg-white shadow text-gray-900" : "text-gray-600"}`}
               >
                 {c}
@@ -85,7 +112,7 @@ export default function WritingViewer({
         </div>
       ) : null}
       <article className="bg-white p-6 rounded-lg shadow whitespace-pre-wrap leading-7 text-gray-800">
-        {work && volume && chapter ? contentByWorkVolumeChapter[work]?.[volume]?.[chapter] ?? "" : ""}
+        {content}
       </article>
     </div>
   );
