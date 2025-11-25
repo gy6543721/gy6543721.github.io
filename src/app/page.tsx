@@ -1,13 +1,9 @@
 import { promises as fs } from "fs";
 import path from "path";
 import Tabs from "./tabs";
-import WritingViewer from "./WritingViewer";
+import WritingViewer from "./viewer";
 
-export default async function Home({
-  searchParams,
-}: {
-  searchParams?: Record<string, string | string[] | undefined>;
-}) {
+export default async function Home() {
   const repos: Repo[] = await fetch("https://api.github.com/users/gy6543721/repos")
     .then((res) => res.json())
     .then((repos) => {
@@ -56,11 +52,9 @@ export default async function Home({
         }
       }
     }
-    const qWork = typeof searchParams?.work === "string" ? searchParams?.work : undefined;
-    const qVolume = typeof searchParams?.volume === "string" ? searchParams?.volume : undefined;
-    selectedWork = qWork && works.includes(qWork) ? qWork : works[0];
+    selectedWork = works[0];
     const availableVolumes = selectedWork ? volumesByWork[selectedWork] ?? [] : [];
-    selectedVolume = qVolume && availableVolumes.includes(qVolume) ? qVolume : availableVolumes[0];
+    selectedVolume = availableVolumes[0];
     const availableChapters = selectedWork && selectedVolume ? chaptersByWorkVolume[selectedWork]?.[selectedVolume] ?? [] : [];
     selectedChapter = availableChapters[0];
     if (selectedWork && selectedVolume && selectedChapter) {
@@ -71,11 +65,10 @@ export default async function Home({
     }
   } catch {}
 
-  const tabParam = typeof searchParams?.tab === "string" ? searchParams?.tab : undefined;
-  const initialTab = tabParam === "writing" || typeof searchParams?.work === "string" || typeof searchParams?.volume === "string" ? "writing" : "coding";
+  const initialTab = "coding";
 
   return (
-    <main className="min-h-screen p-8 bg-gray-50">
+        <main className="min-h-screen p-8 bg-gray-50">
       <Tabs
         initialTab={initialTab as "writing" | "coding"}
         writingHeader={

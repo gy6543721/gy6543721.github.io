@@ -39,6 +39,26 @@ export default function WritingViewer({
     }
   }, [content]);
 
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const qWork = params.get("work");
+      const qVolume = params.get("volume");
+      const qChapter = params.get("chapter");
+      if (qWork && works.includes(qWork)) {
+        setWork(qWork);
+        const vols = volumesByWork[qWork] ?? [];
+        const vol = qVolume && vols.includes(qVolume) ? qVolume : vols[0];
+        setVolume(vol);
+        const chs = vol ? chaptersByWorkVolume[qWork]?.[vol] ?? [] : [];
+        const ch = qChapter && chs.includes(qChapter) ? qChapter : chs[0];
+        setChapter(ch);
+        fetchChapter(qWork, vol, ch);
+      }
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   async function fetchChapter(w?: string, v?: string, c?: string) {
     if (!w || !v || !c) {
       setContent("");
