@@ -18,6 +18,13 @@ export default function Tabs({
   useEffect(() => {
     setActive(initialTab);
   }, [initialTab]);
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const t = params.get("tab");
+      if (t === "writing" || t === "coding") setActive(t as "writing" | "coding");
+    } catch {}
+  }, []);
   return (
     <div className="max-w-6xl mx-auto">
       <div className="mb-6 text-center">
