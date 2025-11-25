@@ -24,7 +24,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-gray-50 text-gray-900`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-gray-50 text-gray-900 select-none`}>
         <div className="flex-1">{children}</div>
         <footer className="mt-8 border-t border-gray-200 py-6 text-center text-sm bg-gray-50 text-gray-500">
           © 2017–2026 Levi Lin. All rights reserved.
