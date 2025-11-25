@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function WritingViewer({
   works,
@@ -26,6 +26,18 @@ export default function WritingViewer({
   const [chapter, setChapter] = useState<string | undefined>(defaultChapter);
   const [content, setContent] = useState<string>(initialContent ?? "");
   const chaptersRef = useRef<HTMLDivElement | null>(null);
+  const pendingScrollRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    if (pendingScrollRef.current) {
+      const el = chaptersRef.current;
+      if (el) {
+        const top = window.scrollY + el.getBoundingClientRect().top - 8;
+        window.scrollTo({ top, behavior: "smooth" });
+      }
+      pendingScrollRef.current = false;
+    }
+  }, [content]);
 
   async function fetchChapter(w?: string, v?: string, c?: string) {
     if (!w || !v || !c) {
@@ -184,7 +196,7 @@ export default function WritingViewer({
                     setVolume(prev.volume);
                     setChapter(prev.chapter);
                     fetchChapter(work, prev.volume, prev.chapter);
-                    chaptersRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    pendingScrollRef.current = true;
                   }}
                   className={`px-4 py-2 rounded-md ${prev ? "bg-white shadow text-gray-900" : "text-gray-600 opacity-50 cursor-not-allowed"}`}
                 >
@@ -199,7 +211,7 @@ export default function WritingViewer({
                     setVolume(next.volume);
                     setChapter(next.chapter);
                     fetchChapter(work, next.volume, next.chapter);
-                    chaptersRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    pendingScrollRef.current = true;
                   }}
                   className={`px-4 py-2 rounded-md ${next ? "bg-white shadow text-gray-900" : "text-gray-600 opacity-50 cursor-not-allowed"}`}
                 >
