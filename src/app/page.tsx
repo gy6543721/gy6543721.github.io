@@ -15,13 +15,15 @@ export default async function Home({
       return filtered.sort((a: Repo, b: Repo) => b.stargazers_count - a.stargazers_count || b.forks_count - a.forks_count);
     });
 
-  const novelsRoot = path.join(process.cwd(), "src", "app", "novels");
+  const novelsRoot = path.join(process.cwd(), "public", "novels");
   let works: string[] = [];
   const volumesByWork: Record<string, string[]> = {};
   const chaptersByWorkVolume: Record<string, Record<string, string[]>> = {};
   const contentByWorkVolumeChapter: Record<string, Record<string, Record<string, string>>> = {};
   let selectedWork: string | undefined;
   let selectedVolume: string | undefined;
+  let selectedChapter: string | undefined;
+  let initialContent = "";
 
   try {
     await fs.access(novelsRoot);
@@ -59,6 +61,14 @@ export default async function Home({
     selectedWork = qWork && works.includes(qWork) ? qWork : works[0];
     const availableVolumes = selectedWork ? volumesByWork[selectedWork] ?? [] : [];
     selectedVolume = qVolume && availableVolumes.includes(qVolume) ? qVolume : availableVolumes[0];
+    const availableChapters = selectedWork && selectedVolume ? chaptersByWorkVolume[selectedWork]?.[selectedVolume] ?? [] : [];
+    selectedChapter = availableChapters[0];
+    if (selectedWork && selectedVolume && selectedChapter) {
+      const filePath = path.join(novelsRoot, selectedWork, selectedVolume, `${selectedChapter}.md`);
+      try {
+        initialContent = await fs.readFile(filePath, "utf8");
+      } catch {}
+    }
   } catch {}
 
   const tabParam = typeof searchParams?.tab === "string" ? searchParams?.tab : undefined;
@@ -83,15 +93,16 @@ export default async function Home({
         writing={
           <div className="max-w-4xl mx-auto">
             {works.length === 0 ? (
-              <div className="text-center text-gray-600">No novels found in src/app/novels</div>
+              <div className="text-center text-gray-600">No novels found in public/novels</div>
             ) : (
               <WritingViewer
                 works={works}
                 volumesByWork={volumesByWork}
                 chaptersByWorkVolume={chaptersByWorkVolume}
-                contentByWorkVolumeChapter={contentByWorkVolumeChapter}
                 initialWork={selectedWork}
                 initialVolume={selectedVolume}
+                initialChapter={selectedChapter}
+                initialContent={initialContent}
               />
             )}
           </div>
