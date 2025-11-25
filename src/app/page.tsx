@@ -1,6 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import Tabs from "./tabs";
+import WritingViewer from "./WritingViewer";
 
 export default async function Home({
   searchParams,
@@ -17,9 +18,9 @@ export default async function Home({
   const novelsRoot = path.join(process.cwd(), "src", "app", "novels");
   let works: string[] = [];
   const volumesByWork: Record<string, string[]> = {};
+  const contentByWorkVolume: Record<string, Record<string, string>> = {};
   let selectedWork: string | undefined;
   let selectedVolume: string | undefined;
-  let chapterContent = "";
 
   try {
     await fs.access(novelsRoot);
@@ -30,21 +31,26 @@ export default async function Home({
       const entries = await fs.readdir(workDir, { withFileTypes: true });
       const volumes = entries.filter((e) => e.isDirectory()).map((e) => e.name).sort();
       volumesByWork[w] = volumes;
+      contentByWorkVolume[w] = {};
+      for (const v of volumes) {
+        const filePath = path.join(novelsRoot, w, v, `001.md`);
+        try {
+          const txt = await fs.readFile(filePath, "utf8");
+          contentByWorkVolume[w][v] = txt;
+        } catch {
+          contentByWorkVolume[w][v] = "";
+        }
+      }
     }
     const qWork = typeof searchParams?.work === "string" ? searchParams?.work : undefined;
     const qVolume = typeof searchParams?.volume === "string" ? searchParams?.volume : undefined;
     selectedWork = qWork && works.includes(qWork) ? qWork : works[0];
     const availableVolumes = selectedWork ? volumesByWork[selectedWork] ?? [] : [];
     selectedVolume = qVolume && availableVolumes.includes(qVolume) ? qVolume : availableVolumes[0];
-    if (selectedWork && selectedVolume) {
-      const filePath = path.join(novelsRoot, selectedWork, selectedVolume, `001.md`);
-      try {
-        chapterContent = await fs.readFile(filePath, "utf8");
-      } catch {}
-    }
   } catch {}
 
-  const initialTab = (typeof searchParams?.tab === "string" ? searchParams?.tab : undefined) === "writing" ? "writing" : "coding";
+  const tabParam = typeof searchParams?.tab === "string" ? searchParams?.tab : undefined;
+  const initialTab = tabParam === "writing" || typeof searchParams?.work === "string" || typeof searchParams?.volume === "string" ? "writing" : "coding";
 
   return (
     <main className="min-h-screen p-8 bg-gray-50">
@@ -67,33 +73,13 @@ export default async function Home({
             {works.length === 0 ? (
               <div className="text-center text-gray-600">No novels found in src/app/novels</div>
             ) : (
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold mb-2 text-gray-800">Works</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {works.map((w) => (
-                      <a key={w} href={`?tab=writing&work=${encodeURIComponent(w)}`} className={`px-3 py-1 rounded border ${selectedWork === w ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-700 hover:bg-gray-100"}`}>
-                        {w}
-                      </a>
-                    ))}
-                  </div>
-                </div>
-                {selectedWork ? (
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2 text-gray-800">Volumes</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {(volumesByWork[selectedWork] ?? []).map((v) => (
-                        <a key={v} href={`?tab=writing&work=${encodeURIComponent(selectedWork)}&volume=${encodeURIComponent(v)}`} className={`px-3 py-1 rounded border ${selectedVolume === v ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-700 hover:bg-gray-100"}`}>
-                          {v}
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-                <article className="bg-white p-6 rounded-lg shadow whitespace-pre-wrap leading-7 text-gray-800">
-                  {chapterContent || ""}
-                </article>
-              </div>
+              <WritingViewer
+                works={works}
+                volumesByWork={volumesByWork}
+                contentByWorkVolume={contentByWorkVolume}
+                initialWork={selectedWork}
+                initialVolume={selectedVolume}
+              />
             )}
           </div>
         }
