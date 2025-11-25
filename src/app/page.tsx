@@ -18,7 +18,8 @@ export default async function Home({
   const novelsRoot = path.join(process.cwd(), "src", "app", "novels");
   let works: string[] = [];
   const volumesByWork: Record<string, string[]> = {};
-  const contentByWorkVolume: Record<string, Record<string, string>> = {};
+  const chaptersByWorkVolume: Record<string, Record<string, string[]>> = {};
+  const contentByWorkVolumeChapter: Record<string, Record<string, Record<string, string>>> = {};
   let selectedWork: string | undefined;
   let selectedVolume: string | undefined;
 
@@ -31,14 +32,25 @@ export default async function Home({
       const entries = await fs.readdir(workDir, { withFileTypes: true });
       const volumes = entries.filter((e) => e.isDirectory()).map((e) => e.name).sort();
       volumesByWork[w] = volumes;
-      contentByWorkVolume[w] = {};
+      chaptersByWorkVolume[w] = {};
+      contentByWorkVolumeChapter[w] = {};
       for (const v of volumes) {
-        const filePath = path.join(novelsRoot, w, v, `001.md`);
-        try {
-          const txt = await fs.readFile(filePath, "utf8");
-          contentByWorkVolume[w][v] = txt;
-        } catch {
-          contentByWorkVolume[w][v] = "";
+        const volDir = path.join(novelsRoot, w, v);
+        const files = await fs.readdir(volDir, { withFileTypes: true });
+        const chapters = files
+          .filter((f) => f.isFile() && f.name.endsWith(".md"))
+          .map((f) => f.name.replace(/\.md$/, ""))
+          .sort();
+        chaptersByWorkVolume[w][v] = chapters;
+        contentByWorkVolumeChapter[w][v] = {};
+        for (const c of chapters) {
+          const filePath = path.join(volDir, `${c}.md`);
+          try {
+            const txt = await fs.readFile(filePath, "utf8");
+            contentByWorkVolumeChapter[w][v][c] = txt;
+          } catch {
+            contentByWorkVolumeChapter[w][v][c] = "";
+          }
         }
       }
     }
@@ -76,7 +88,8 @@ export default async function Home({
               <WritingViewer
                 works={works}
                 volumesByWork={volumesByWork}
-                contentByWorkVolume={contentByWorkVolume}
+                chaptersByWorkVolume={chaptersByWorkVolume}
+                contentByWorkVolumeChapter={contentByWorkVolumeChapter}
                 initialWork={selectedWork}
                 initialVolume={selectedVolume}
               />
